@@ -1,6 +1,6 @@
 # favcolor
 
-Get dominant color of an favicon by giving a site url.
+Get dominant color of a favicon by giving a site url.
 
 ##  Installation
     npm i favcolor
