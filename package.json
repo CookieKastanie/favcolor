@@ -6,8 +6,12 @@
   "scripts": {
     "start": "node exemple.js"
   },
-  "keywords": [],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CookieKastanie/favcolor.git"    
+  },
+  "keywords": ["find", "dominant", "color", "image", "favicon"],
+  "author": "kastanie",
   "license": "MIT",
   "dependencies": {
     "pngjs": "^6.0.0"
