@@ -110,7 +110,7 @@ const findColor = (image) => {
             const gh = this.g.toString(16).padStart(2, '0');
             const bh = this.b.toString(16).padStart(2, '0');
             
-            return `${rh}${gh}${bh}`;
+            return `#${rh}${gh}${bh}`.toUpperCase();
         }
     };
 }
@@ -118,38 +118,68 @@ const findColor = (image) => {
 const cache = {};
 const CACHE_DURATION = 8.64e+7 // 24h in ms
 
-module.exports = {
-    fromSiteFavicon: url => {
-        return new Promise((resolve, reject) => {
-            if(url in cache) {
-                const cached = cache[url];
-                if((cached.date + CACHE_DURATION) > Date.now()) {
-                    resolve(cached.color);
-                    return;
-                }
+const getColorFromCache = url => {
+    if(url in cache) {
+        const cached = cache[url];
+        if((cached.date + CACHE_DURATION) > Date.now()) {
+            return cached.color;
+        } else {
+            return null;
+        }
+    }
+}
+
+const setColorInCache = (url, color) => {
+    cache[url] = {color, date: Date.now()};
+}
+
+const getColor = (options, url) => {
+    return new Promise((resolve, reject) => {
+        const cachedColor = getColorFromCache(url);
+        if(cachedColor != null) {
+            resolve(cachedColor);
+            return;
+        }
+
+        const req = https.request(options, res => {
+            if(res.statusCode != 200) {
+                reject(res.statusCode);
+                return;
             }
 
-            const options = {
-                hostname: 't3.gstatic.com',
-                path: `/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${url}/&size=16`,
-                method: 'GET'
-            };
-
-            const req = https.request(options, res => {
-                if(res.statusCode != 200) {
-                    reject(res.statusCode);
-                    return;
-                }
-    
-                res.pipe(new PNG()).on('parsed', function() {
-                    const color = findColor(this);
-                    cache[url] = {color, date: Date.now()};
-                    resolve(color);
-                });
+            res.pipe(new PNG()).on('parsed', function() {
+                const color = findColor(this);
+                setColorInCache(url, color);
+                resolve(color);
             });
-    
-            req.on('error', reject);
-            req.end();
         });
+
+        req.on('error', reject);
+        req.end();
+    });
+}
+
+module.exports = {
+    fromImageUrl: url => {
+        const parsedUrl = new URL(url);
+
+        const options = {
+            path: parsedUrl.pathname,
+            host: parsedUrl.hostname,
+            port: parsedUrl.port,
+            method: 'GET'
+        };
+
+        return getColor(options, url);
+    },
+
+    fromSiteFavicon: url => {
+        const options = {
+            hostname: 't3.gstatic.com',
+            path: `/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${url}/&size=16`,
+            method: 'GET'
+        };
+
+        return getColor(options, url);
     }
 }
