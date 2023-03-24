@@ -5,7 +5,7 @@ declare namespace favcolor {
      * It will cache the color found for the URL for 24h to reduce the number of HTTPS request.
      * @param url URL to an online image
      */
-    declare function fromImageUrl(url: string): Promise<{
+    function fromImageUrl(url: string): Promise<{
         /** Between 0 and 255 */
         r: number,
         /** Between 0 and 255 */
@@ -21,7 +21,7 @@ declare namespace favcolor {
      * It will cache the color associated with the URL for 24h to reduce the number of HTTPS request.
      * @param url Website URL
      */
-    declare function fromSiteFavicon(url: string): Promise<{
+    function fromSiteFavicon(url: string): Promise<{
         /** Between 0 and 255 */
         r: number,
         /** Between 0 and 255 */
